@@ -36,14 +36,14 @@ kde(
 
 \item{upper}{Numeric value: upper range limit for the kde}
 
+\item{x}{an obeject of class "kde"}
+
 \item{...}{Extra arguments passed on to methods.}
 
 \item{xlab, ylab, col}{base graphics parameters}
 
 \item{restore_graphics_state}{logical: should the prior graphics
 state be restored?}
-
-\item{an}{obeject of class "kde"}
 }
 \value{
 a list object with results of the kde estimation.

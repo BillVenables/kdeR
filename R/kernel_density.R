@@ -2,6 +2,7 @@
 
 #' @import stats
 #' @import graphics
+#' @importFrom grDevices hcl.colors
 #' @import utils
 NULL
 
@@ -15,7 +16,7 @@ NULL
 #' @param N  integer: number of equally spaced points for the kde
 #' @param lower Numeric value: lower range limit for the kde
 #' @param upper Numeric value: upper range limit for the kde
-#' @param an obeject of class "kde"
+#' @param x an obeject of class "kde"
 #' @param xlab,ylab,col base graphics parameters
 #' @param restore_graphics_state logical: should the prior graphics
 #'        state be restored?
@@ -96,13 +97,13 @@ print.kde <- function(x, ...) {
 #'
 #' A pure R implementation of two direct algorithms.
 #'
-#' @param x,y Numeric vectors of the response Variables
+#' @param x Numeric vector or, in generics, a kde object
+#' @param y Numeric vector of the response Variables
 #' @param N Integer: number of equally spaced points for the kde.  May be one or two for x and y respectively
 #' @param bw Numeric: bandwidth(s) for x and y kernels respectively.  A single value will be duplicated.
 #' @param lower_x,upper_x,lower_y,upper_y Numeric: kde range limits
 #' @param algorithm1 Logical: should the smaller sample algorithm be used?
 #' @param k Ineger: number of bandwidths by which to increase the range for the default limits.
-#' @param x An object of class kde_2d
 #' @param xlab,ylab,col base graphics parameters
 #' @param restore_graphics_state logical: should the prior graphics
 #'        state be restored?

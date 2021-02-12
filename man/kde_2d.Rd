@@ -31,7 +31,9 @@ kde_2d(
 )
 }
 \arguments{
-\item{x, y}{Numeric vectors of the response Variables}
+\item{x}{Numeric vector or, in generics, a kde object}
+
+\item{y}{Numeric vector of the response Variables}
 
 \item{N}{Integer: number of equally spaced points for the kde.  May be one or two for x and y respectively}
 
@@ -49,8 +51,6 @@ kde_2d(
 
 \item{restore_graphics_state}{logical: should the prior graphics
 state be restored?}
-
-\item{x}{An object of class kde_2d}
 }
 \value{
 An object of class "kde_2d"
