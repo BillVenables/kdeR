@@ -1,0 +1,17 @@
+Package: kdeR
+Type: Package
+Title: Kernel Density Estimates
+Version: 0.1.1
+Author: Bill Venables
+Maintainer: Bill Venables <Bill.Venables@gmail.com>
+Description: A pure R implementation of one- and two-dimensional
+    kernel density estimation with gaussian kernels.  The algorithm
+    is naive and does not involve the FFT, and hence mainly for
+    expository purposes, but is reasonably fast for intermediate
+    sized samples.  known range limits are well handled.
+Imports: stats, graphics, utils
+Depends: R (>= 4.0.0)
+License: GPL (>= 2)
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.1
