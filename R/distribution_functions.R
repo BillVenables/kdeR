@@ -22,6 +22,8 @@
 #' rkx <- r_fun(kx)
 #' rbind(quantile(x, 0:10/10), qkx(0:10/10))
 #' pkx(qkx(1:9/10))
+#'     par(mar = c(3, 3, 1, 1) + 0.1, las = 1, mgp = c(1.5, 0.5, 0),
+#'         cex.axis = 0.7, cex.lab = 0.8, tck = -0.015)
 #' curve(dkx, xlim = qkx(0:1), col = 2)
 #' curve(dnorm, add = TRUE)
 #' grid()
@@ -128,4 +130,67 @@ r_fun.kde <- function(x, ...) {
 #' @export
 r_fun.numeric <- function(x, ...) {
   r_fun.kde(kde(x, ...))
+}
+
+#' Coercion to class kde
+#'
+#' A coercion function to class \code{"kde"}, currently the
+#' only method is for objects of class \code{"density"} from
+#' the \code{stats} package.
+#'
+#' @param x an object
+#' @param ... extra arguments for methods.  Currently not used.
+#'
+#' @return an object of class \code{"kde"}
+#' @export
+#'
+#' @examples
+#' set.seed(1234)
+#' .x <- rnorm(5000)
+#' dx <- density(.x)
+#' oldPar <- par(mfrow = c(1,2), pty = "s", cex.main = 0.8,
+#'   mar = c(3, 3, 1, 1) + 0.1, las = 1, mgp = c(1.5, 0.5, 0),
+#'   cex.axis = 0.7, cex.lab = 0.8, tck = -0.015)
+#' plot(dx)
+#' plot(as_kde(dx))
+#' par(oldPar)
+#' rm(.x, oldPar)
+as_kde <- function(x, ...) {
+  UseMethod("as_kde")
+}
+
+#' @rdname as_kde
+#' @export
+as_kde.density <- function(x, ...) {
+  with(unclass(x), {
+    dx <- mean(diff(x))/2
+    structure(list(x = x, y = y, bw = bw, n = n,
+                   lower = min(x) - dx, upper = max(x) + dx,
+                   data_name = data.name),
+              class = "kde")
+  })
+}
+
+#' @rdname p_fun
+#' @export
+p_fun.density <- function(x, ...) {
+  p_fun.kde(as_kde(x))
+}
+
+#' @rdname p_fun
+#' @export
+d_fun.density <- function(x, ...) {
+  d_fun.kde(as_kde(x))
+}
+
+#' @rdname p_fun
+#' @export
+q_fun.density <- function(x, ...) {
+  q_fun.kde(as_kde(x))
+}
+
+#' @rdname p_fun
+#' @export
+r_fun.density <- function(x, ...) {
+  r_fun.kde(as_kde(x))
 }

@@ -92,7 +92,7 @@ if("package:ggplot2" \%in\% search()) {
 } else {
   with(unclass(kxy), {
     par(mar = c(3, 3, 1, 1) + 0.1, las = 1, mgp = c(1.5, 0.5, 0),
-        cex.axis = 0.7, cex.lab = 0.8, tck = -0.025)
+        cex.axis = 0.7, cex.lab = 0.8, tck = -0.015)
     plot(kxy)
     contour(x, y, col = "firebrick3",
             z = outer(x, y, function(x, y)

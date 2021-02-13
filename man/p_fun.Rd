@@ -13,6 +13,10 @@
 \alias{r_fun}
 \alias{r_fun.kde}
 \alias{r_fun.numeric}
+\alias{p_fun.density}
+\alias{d_fun.density}
+\alias{q_fun.density}
+\alias{r_fun.density}
 \title{Kernel Distribution Functions}
 \usage{
 p_fun(x, ...)
@@ -38,6 +42,14 @@ r_fun(x, ...)
 \method{r_fun}{kde}(x, ...)
 
 \method{r_fun}{numeric}(x, ...)
+
+\method{p_fun}{density}(x, ...)
+
+\method{d_fun}{density}(x, ...)
+
+\method{q_fun}{density}(x, ...)
+
+\method{r_fun}{density}(x, ...)
 }
 \arguments{
 \item{x}{Either a kde object or a numeric vector from which a kde
@@ -64,6 +76,8 @@ qkx <- q_fun(kx)
 rkx <- r_fun(kx)
 rbind(quantile(x, 0:10/10), qkx(0:10/10))
 pkx(qkx(1:9/10))
+    par(mar = c(3, 3, 1, 1) + 0.1, las = 1, mgp = c(1.5, 0.5, 0),
+        cex.axis = 0.7, cex.lab = 0.8, tck = -0.015)
 curve(dkx, xlim = qkx(0:1), col = 2)
 curve(dnorm, add = TRUE)
 grid()
