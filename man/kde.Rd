@@ -4,6 +4,7 @@
 \alias{kde}
 \alias{plot.kde}
 \alias{print.kde}
+\alias{as.data.frame.kde}
 \title{Kernel Density Estimate}
 \usage{
 kde(
@@ -19,16 +20,18 @@ kde(
   ...,
   col = "steel blue",
   xlab = bquote(x == italic(.(x$data_name))),
-  ylab = expression(kde(italic(x))),
-  restore_graphics_state = TRUE
+  ylab = expression(kde(italic(x)))
 )
 
 \method{print}{kde}(x, ...)
+
+\method{as.data.frame}{kde}(x, row.names, optional, ..., responseName = "density")
 }
 \arguments{
 \item{y}{Numeric vector of observed values}
 
-\item{bw}{Numeric value: bandwidth, standard deviation of the kernel density}
+\item{bw}{Numeric value: bandwidth, standard deviation of
+the kernel density}
 
 \item{N}{integer: number of equally spaced points for the kde}
 
@@ -42,8 +45,10 @@ kde(
 
 \item{xlab, ylab, col}{base graphics parameters}
 
-\item{restore_graphics_state}{logical: should the prior graphics
-state be restored?}
+\item{row.names, optional}{As for the as.data.frame generic}
+
+\item{responseName}{character string: name for the response
+variable}
 }
 \value{
 a list object with results of the kde estimation.
@@ -54,11 +59,25 @@ gaussian kernel.  Mainly of programming interest.
 }
 \examples{
 set.seed(1234)
-.x <- rchisq(1000, 2)
-kx <- kde(.x, lower = 0)
+x_value <- rchisq(1000, 2)
+kx <- kde(x_value, lower = 0)
 kx
-plot(kx, restore_graphics_state = FALSE, ylim = c(0,0.5))
-curve(dchisq(x, 2), add = TRUE, col = "grey", n = 500)
-rug(.x, col = 2)
-rm(.x)
+if("package:ggplot2" \%in\% search()) {
+  ggplot(as.data.frame(kx)) +
+    aes(x = x_value, y = density) +
+    geom_line(colour = "steel blue") +
+    geom_function(fun = function(x) dchisq(x, 2),
+                  colour = "firebrick3") +
+    theme_bw() +
+    xlab(expression(x == italic(x_value))) +
+    ylab(expression(kde(italic(x))))
+} else {
+  par(mar = c(3, 3, 1, 1) + 0.1, las = 1, mgp = c(1.5, 0.5, 0),
+      cex.axis = 0.7, cex.lab = 0.8, tck = -0.025)
+  plot(kx, ylim = c(0,0.5))
+  curve(dchisq(x, 2), add = TRUE, col = 2, n = 500)
+  rug(x_value, col = "dark green")
+  box()
+}
+rm(x_value)
 }

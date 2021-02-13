@@ -4,6 +4,7 @@
 \alias{kde_2d}
 \alias{print.kde_2d}
 \alias{plot.kde_2d}
+\alias{as.data.frame.kde_2d}
 \title{Two Dimensional Kernel Density Estimate}
 \usage{
 kde_2d(
@@ -26,8 +27,16 @@ kde_2d(
   ...,
   xlab = bquote(italic(.(x$data_name[["x"]]))),
   ylab = bquote(italic(.(x$data_name[["y"]]))),
-  col = hcl.colors(25, rev = TRUE),
-  restore_graphics_state = TRUE
+  col = hcl.colors(25, rev = TRUE)
+)
+
+\method{as.data.frame}{kde_2d}(
+  x,
+  row.names,
+  optional,
+  ...,
+  borders = FALSE,
+  responseName = "density"
 )
 }
 \arguments{
@@ -35,22 +44,30 @@ kde_2d(
 
 \item{y}{Numeric vector of the response Variables}
 
-\item{N}{Integer: number of equally spaced points for the kde.  May be one or two for x and y respectively}
+\item{N}{Integer: number of equally spaced points for the
+kde.  May be one or two for x and y respectively}
 
-\item{bw}{Numeric: bandwidth(s) for x and y kernels respectively.  A single value will be duplicated.}
+\item{bw}{Numeric: bandwidth(s) for x and y kernels
+respectively.  A single value will be duplicated.}
 
 \item{lower_x, upper_x, lower_y, upper_y}{Numeric: kde range limits}
 
-\item{algorithm1}{Logical: should the smaller sample algorithm be used?}
+\item{algorithm1}{Logical: should the smaller sample
+algorithm be used?}
 
-\item{k}{Ineger: number of bandwidths by which to increase the range for the default limits.}
+\item{k}{Ineger: number of bandwidths by which to increase
+the range for the default limits.}
 
 \item{...}{Extra arguments passed on to methods.}
 
 \item{xlab, ylab, col}{base graphics parameters}
 
-\item{restore_graphics_state}{logical: should the prior graphics
-state be restored?}
+\item{row.names, optional}{As for the as.data.frame generic}
+
+\item{borders}{logical: should zero borders be included around
+the density when the object is coerced to a data frame.}
+
+\item{responseName}{character string: name for the density vector.}
 }
 \value{
 An object of class "kde_2d"
@@ -60,11 +77,29 @@ A pure R implementation of two direct algorithms.
 }
 \examples{
 set.seed(1234)
-.time <- rnorm(10000, 10)
-.money <- runif(.time) + .time/10
-kxy <- kde_2d(.time, .money, algorithm1 = TRUE)
+x_value <- abs(rnorm(5000))
+y_value <- rnorm(x_value)
+kxy <- kde_2d(x_value, y_value, lower_x = 0)
 kxy
-plot(kxy, restore_graphics_state = FALSE)
-contour(kxy, add = TRUE)
-rm(.time, .money)
+if("package:ggplot2" \%in\% search()) {
+    ggplot(within(as.data.frame(kxy),
+                  pDens <- 2*dnorm(x_value)*dnorm(y_value))) +
+      aes(x = x_value, y = y_value) +
+      geom_raster(aes(fill = density)) +
+      geom_contour(aes(z = pDens), colour = "firebrick3") +
+      scale_fill_viridis_c(direction = -1) +
+      theme_bw() + theme(legend.position = "none")
+} else {
+  with(unclass(kxy), {
+    par(mar = c(3, 3, 1, 1) + 0.1, las = 1, mgp = c(1.5, 0.5, 0),
+        cex.axis = 0.7, cex.lab = 0.8, tck = -0.025)
+    plot(kxy)
+    contour(x, y, col = "firebrick3",
+            z = outer(x, y, function(x, y)
+              2*dnorm(x)*dnorm(y)),
+            nlevels = 6, add = TRUE)
+    box()
+  })
+}
+rm(x_value, y_value)
 }

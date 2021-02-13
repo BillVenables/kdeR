@@ -12,14 +12,16 @@ NULL
 #' gaussian kernel.  Mainly of programming interest.
 #'
 #' @param y Numeric vector of observed values
-#' @param bw Numeric value: bandwidth, standard deviation of the kernel density
+#' @param bw Numeric value: bandwidth, standard deviation of
+#'        the kernel density
 #' @param N  integer: number of equally spaced points for the kde
 #' @param lower Numeric value: lower range limit for the kde
 #' @param upper Numeric value: upper range limit for the kde
 #' @param x an obeject of class "kde"
 #' @param xlab,ylab,col base graphics parameters
-#' @param restore_graphics_state logical: should the prior graphics
-#'        state be restored?
+#' @param row.names,optional As for the as.data.frame generic
+#' @param responseName character string: name for the response
+#'         variable
 #' @param ...  Extra arguments passed on to methods.
 #'
 #' @return a list object with results of the kde estimation.
@@ -27,13 +29,27 @@ NULL
 #'
 #' @examples
 #' set.seed(1234)
-#' .x <- rchisq(1000, 2)
-#' kx <- kde(.x, lower = 0)
+#' x_value <- rchisq(1000, 2)
+#' kx <- kde(x_value, lower = 0)
 #' kx
-#' plot(kx, restore_graphics_state = FALSE, ylim = c(0,0.5))
-#' curve(dchisq(x, 2), add = TRUE, col = "grey", n = 500)
-#' rug(.x, col = 2)
-#' rm(.x)
+#' if("package:ggplot2" %in% search()) {
+#'   ggplot(as.data.frame(kx)) +
+#'     aes(x = x_value, y = density) +
+#'     geom_line(colour = "steel blue") +
+#'     geom_function(fun = function(x) dchisq(x, 2),
+#'                   colour = "firebrick3") +
+#'     theme_bw() +
+#'     xlab(expression(x == italic(x_value))) +
+#'     ylab(expression(kde(italic(x))))
+#' } else {
+#'   par(mar = c(3, 3, 1, 1) + 0.1, las = 1, mgp = c(1.5, 0.5, 0),
+#'       cex.axis = 0.7, cex.lab = 0.8, tck = -0.025)
+#'   plot(kx, ylim = c(0,0.5))
+#'   curve(dchisq(x, 2), add = TRUE, col = 2, n = 500)
+#'   rug(x_value, col = "dark green")
+#'   box()
+#' }
+#' rm(x_value)
 kde <- function(y, bw = bw.nrd0(y), N = 512,
                 lower = ry[1] - 3*bw, upper = ry[2] + 3*bw) {
   data_name <- deparse(substitute(y))
@@ -57,20 +73,11 @@ kde <- function(y, bw = bw.nrd0(y), N = 512,
 #' @export
 plot.kde <- function(x, ..., col = "steel blue",
                      xlab = bquote(x == italic(.(x$data_name))),
-                     ylab = expression(kde(italic(x))),
-                     restore_graphics_state = TRUE) {
-  if(restore_graphics_state) {
-    oldPar <- par(no.readonly = TRUE)
-    on.exit(par(oldPar))
-  }
-  par(mar = c(4, 5.5, 1, 1) + 0.1, las = 1,
-      cex.axis = 0.7, cex.lab = 1)
+                     ylab = expression(kde(italic(x)))) {
   with(x, {
     plot(x = c(lower, x, upper), y = c(0, y, 0),
-         axes = FALSE, type = "l", xlab = xlab, ylab = ylab,
+         type = "l", xlab = xlab, ylab = ylab,
          col = col, panel.first = grid(), ...)
-    axis(1)
-    axis(2)
   })
   invisible(x)
 }
@@ -93,20 +100,36 @@ print.kde <- function(x, ...) {
 }
 # .S3method("print", "kde")
 
+#' @rdname kde
+#' @export
+as.data.frame.kde <- function(x, row.names, optional, ...,
+                              responseName = "density") {
+  with(unclass(x),
+       setNames(data.frame(X = c(lower, x, upper),
+                           Y = c(0, y, 0), ...),
+                c(data_name, responseName)))
+}
+
 #' Two Dimensional Kernel Density Estimate
 #'
 #' A pure R implementation of two direct algorithms.
 #'
 #' @param x Numeric vector or, in generics, a kde object
 #' @param y Numeric vector of the response Variables
-#' @param N Integer: number of equally spaced points for the kde.  May be one or two for x and y respectively
-#' @param bw Numeric: bandwidth(s) for x and y kernels respectively.  A single value will be duplicated.
+#' @param N Integer: number of equally spaced points for the
+#'        kde.  May be one or two for x and y respectively
+#' @param bw Numeric: bandwidth(s) for x and y kernels
+#'        respectively.  A single value will be duplicated.
 #' @param lower_x,upper_x,lower_y,upper_y Numeric: kde range limits
-#' @param algorithm1 Logical: should the smaller sample algorithm be used?
-#' @param k Ineger: number of bandwidths by which to increase the range for the default limits.
+#' @param algorithm1 Logical: should the smaller sample
+#'        algorithm be used?
+#' @param k Ineger: number of bandwidths by which to increase
+#'        the range for the default limits.
 #' @param xlab,ylab,col base graphics parameters
-#' @param restore_graphics_state logical: should the prior graphics
-#'        state be restored?
+#' @param row.names,optional As for the as.data.frame generic
+#' @param borders logical: should zero borders be included around
+#'        the density when the object is coerced to a data frame.
+#' @param responseName character string: name for the density vector.
 #' @param ...  Extra arguments passed on to methods.
 #'
 #' @return An object of class "kde_2d"
@@ -114,13 +137,31 @@ print.kde <- function(x, ...) {
 #'
 #' @examples
 #' set.seed(1234)
-#' .time <- rnorm(10000, 10)
-#' .money <- runif(.time) + .time/10
-#' kxy <- kde_2d(.time, .money, algorithm1 = TRUE)
+#' x_value <- abs(rnorm(5000))
+#' y_value <- rnorm(x_value)
+#' kxy <- kde_2d(x_value, y_value, lower_x = 0)
 #' kxy
-#' plot(kxy, restore_graphics_state = FALSE)
-#' contour(kxy, add = TRUE)
-#' rm(.time, .money)
+#' if("package:ggplot2" %in% search()) {
+#'     ggplot(within(as.data.frame(kxy),
+#'                   pDens <- 2*dnorm(x_value)*dnorm(y_value))) +
+#'       aes(x = x_value, y = y_value) +
+#'       geom_raster(aes(fill = density)) +
+#'       geom_contour(aes(z = pDens), colour = "firebrick3") +
+#'       scale_fill_viridis_c(direction = -1) +
+#'       theme_bw() + theme(legend.position = "none")
+#' } else {
+#'   with(unclass(kxy), {
+#'     par(mar = c(3, 3, 1, 1) + 0.1, las = 1, mgp = c(1.5, 0.5, 0),
+#'         cex.axis = 0.7, cex.lab = 0.8, tck = -0.025)
+#'     plot(kxy)
+#'     contour(x, y, col = "firebrick3",
+#'             z = outer(x, y, function(x, y)
+#'               2*dnorm(x)*dnorm(y)),
+#'             nlevels = 6, add = TRUE)
+#'     box()
+#'   })
+#' }
+#' rm(x_value, y_value)
 kde_2d <- function(x, y, N = 128, bw = c(x = bw.nrd0(x), y = bw.nrd0(y)),
                    lower_x = limits$x$lower, upper_x = limits$x$upper,
                    lower_y = limits$y$lower, upper_y = limits$y$upper,
@@ -197,14 +238,30 @@ print.kde_2d <- function(x, ...) {
 plot.kde_2d <- function(x, ...,
                         xlab = bquote(italic(.(x$data_name[["x"]]))),
                         ylab = bquote(italic(.(x$data_name[["y"]]))),
-                        col = hcl.colors(25, rev = TRUE),
-                        restore_graphics_state = TRUE) {
-  if(restore_graphics_state) {
-    oldPar <- par(no.readonly = TRUE)
-    on.exit(par(oldPar))
-  }
-  par(mar = c(4, 4, 1, 1) + 0.1, las = 1, cex.axis = 0.7)
-  with(x, image(x, y, z, xlab = xlab, ylab = ylab, col = col, ...))
+                        col = hcl.colors(25, rev = TRUE)) {
+  with(x, {
+    image(x, y, z, xlab = xlab, ylab = ylab, col = col, ...,
+          axes = FALSE)
+    axis(1, mgp = c(1.5, 0.25, 0))
+    axis(2)
+  })
   invisible(x)
 }
 # .S3method("plot", "kde_2d")
+
+
+#' @rdname kde_2d
+#' @export
+as.data.frame.kde_2d <- function(x, row.names, optional, ...,
+                                 borders = FALSE,
+                                 responseName = "density") {
+  with(unclass(x),
+       setNames(if(borders) {
+         cbind(expand.grid(x = c(lower[["x"]], x, upper[["x"]]),
+                           y = c(lower[["y"]], y, upper[["y"]])),
+               z = as.vector(cbind(0, rbind(0, z, 0), 0)))
+       } else {
+         cbind(expand.grid(x = x, y = y), z = as.vector(z))
+       }, c(data_name, responseName)))
+}
+
