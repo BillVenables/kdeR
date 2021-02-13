@@ -20,7 +20,7 @@
 #' dkx <- d_fun(kx)
 #' qkx <- q_fun(kx)
 #' rkx <- r_fun(kx)
-#' rbind(quantile(x, 2:8/10), qkx(2:8/10))
+#' rbind(quantile(x, 0:10/10), qkx(0:10/10))
 #' pkx(qkx(1:9/10))
 #' curve(dkx, xlim = qkx(0:1), col = 2)
 #' curve(dnorm, add = TRUE)
