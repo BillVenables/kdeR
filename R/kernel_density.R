@@ -1,9 +1,12 @@
 ### poor person's kde
+###
 
+#' @useDynLib kdeR
+#' @import Rcpp
 #' @import stats
 #' @import graphics
 #' @importFrom grDevices hcl.colors
-#' @import utils
+#' @importFrom utils methods
 NULL
 
 #' Kernel Density Estimate
@@ -121,8 +124,6 @@ as.data.frame.kde <- function(x, row.names, optional, ...,
 #' @param bw Numeric: bandwidth(s) for x and y kernels
 #'        respectively.  A single value will be duplicated.
 #' @param lower_x,upper_x,lower_y,upper_y Numeric: kde range limits
-#' @param algorithm1 Logical: should the smaller sample
-#'        algorithm be used?
 #' @param k Ineger: number of bandwidths by which to increase
 #'        the range for the default limits.
 #' @param xlab,ylab,col base graphics parameters
@@ -161,11 +162,11 @@ as.data.frame.kde <- function(x, row.names, optional, ...,
 #'     box()
 #'   })
 #' }
-#' rm(x_value, y_value)
-kde_2d <- function(x, y, N = 128, bw = c(x = bw.nrd0(x), y = bw.nrd0(y)),
+#'
+kde_2d <- function(x, y, N = 256, bw = c(x = bw.nrd0(x), y = bw.nrd0(y)),
                    lower_x = limits$x$lower, upper_x = limits$x$upper,
                    lower_y = limits$y$lower, upper_y = limits$y$upper,
-                   algorithm1 = length(x) < 2*Nxy, k = 1) {
+                   k = 1) {
   data_name_x <- deparse(substitute(x))
   data_name_y <- deparse(substitute(y))
   N <- setNames(rep(N, length.out = 2), c("x", "y"))
@@ -185,32 +186,18 @@ kde_2d <- function(x, y, N = 128, bw = c(x = bw.nrd0(x), y = bw.nrd0(y)),
   dy <- (upper_y - lower_y)/N[["y"]]
   xo <- lower_x - dx/2 + dx*(1:N[["x"]])
   yo <- lower_y - dy/2 + dy*(1:N[["y"]])
-  if(algorithm1) {
-    z <- matrix(0, N[["x"]], N[["y"]])
-    for(i in seq_along(x)) {
-      z <- z + outer(dnorm(xo, x[i], bw[["x"]]),
-                     dnorm(yo, y[i], bw[["y"]]))
-    }
-  } else {
-    fr <- tabulate(1 + floor((x - lower_x)/dx) +
-                     N[["x"]]*floor((y - lower_y)/dy),
-                   nbins = Nxy)
-    z <- with(expand.grid(x = xo, y = yo), {
-      z <- numeric(Nxy)
-      for(i in 1:Nxy) {
-        w <- dnorm(x, x[i], bw[["x"]])*dnorm(y, y[i], bw[["y"]])
-        z[i] <- sum(w*fr)/sum(w)
-      }
-      z
-    })
-    z <- matrix(z, N[["x"]], N[["y"]])
-  }
-  structure(list(x = xo, y = yo, z = z/(sum(z)*dx*dy),
-                 bw = bw, n = length(x),
-                 lower = c(x = lower_x, y = lower_y),
-                 upper = c(x = upper_x, y = upper_y),
-                 data_name = c(x = data_name_x, y = data_name_y)),
-            class = "kde_2d")
+  # z <- matrix(0, N[["x"]], N[["y"]])
+  # for(i in seq_along(x)) {
+  #   z <- z + outer(dnorm(xo, x[i], bw[["x"]]),
+  #                  dnorm(yo, y[i], bw[["y"]]))
+  # }
+  # z <- z/sum(z*dx*dy)
+  z <- kde2dCpp(x, y, xo, yo, bw, dx*dy)
+  structure(c(z, list(bw = bw, n = length(x),
+                      lower = c(x = lower_x, y = lower_y),
+                      upper = c(x = upper_x, y = upper_y),
+                      data_name = c(x = data_name_x, y = data_name_y))),
+              class = "kde_2d")
 }
 
 #' @rdname kde_2d

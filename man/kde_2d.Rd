@@ -10,13 +10,12 @@
 kde_2d(
   x,
   y,
-  N = 128,
+  N = 256,
   bw = c(x = bw.nrd0(x), y = bw.nrd0(y)),
   lower_x = limits$x$lower,
   upper_x = limits$x$upper,
   lower_y = limits$y$lower,
   upper_y = limits$y$upper,
-  algorithm1 = length(x) < 2 * Nxy,
   k = 1
 )
 
@@ -51,9 +50,6 @@ kde.  May be one or two for x and y respectively}
 respectively.  A single value will be duplicated.}
 
 \item{lower_x, upper_x, lower_y, upper_y}{Numeric: kde range limits}
-
-\item{algorithm1}{Logical: should the smaller sample
-algorithm be used?}
 
 \item{k}{Ineger: number of bandwidths by which to increase
 the range for the default limits.}
@@ -101,5 +97,5 @@ if("package:ggplot2" \%in\% search()) {
     box()
   })
 }
-rm(x_value, y_value)
+
 }
