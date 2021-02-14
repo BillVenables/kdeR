@@ -9,7 +9,11 @@ Description: A pure R implementation of one- and two-dimensional
     is naive and does not involve the FFT, and hence mainly for
     expository purposes, but is reasonably fast for intermediate
     sized samples.  Known range limits are well handled.
-Imports: stats, graphics, utils, grDevices
+Imports: 
+    stats,
+    graphics,
+    utils,
+    grDevices
 Depends: R (>= 4.0.0)
 License: GPL (>= 2)
 Encoding: UTF-8

@@ -203,9 +203,10 @@ kde_2d <- function(x, y, N = 128, bw = c(x = bw.nrd0(x), y = bw.nrd0(y)),
       }
       z
     })
-    z <- matrix(z/(sum(z)*dx*dy), N[["x"]], N[["y"]])
+    z <- matrix(z, N[["x"]], N[["y"]])
   }
-  structure(list(x = xo, y = yo, z = z, bw = bw, n = length(x),
+  structure(list(x = xo, y = yo, z = z/(sum(z)*dx*dy),
+                 bw = bw, n = length(x),
                  lower = c(x = lower_x, y = lower_y),
                  upper = c(x = upper_x, y = upper_y),
                  data_name = c(x = data_name_x, y = data_name_y)),
