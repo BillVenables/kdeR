@@ -32,7 +32,7 @@ NULL
 #'
 #' @examples
 #' set.seed(1234)
-#' x_value <- rchisq(1000, 2)
+#' x_value <- rchisq(10000, 2)
 #' kx <- kde(x_value, lower = 0)
 #' kx
 #' if("package:ggplot2" %in% search()) {
@@ -45,28 +45,37 @@ NULL
 #'     xlab(expression(x == italic(x_value))) +
 #'     ylab(expression(kde(italic(x))))
 #' } else {
-#'   par(mar = c(3, 3, 1, 1) + 0.1, las = 1, mgp = c(1.5, 0.5, 0),
-#'       cex.axis = 0.7, cex.lab = 0.8, tck = -0.015)
+#'   oldPar <- par(mar = c(3, 3, 1, 1) + 0.1, las = 1, mgp = c(1.5, 0.5, 0),
+#'                 cex.axis = 0.7, cex.lab = 0.8, tck = -0.015)
 #'   plot(kx, ylim = c(0,0.5))
-#'   curve(dchisq(x, 2), add = TRUE, col = 2, n = 500)
+#'   curve(dchisq(x, 2), add = TRUE, col = 2, n = 1000)
 #'   rug(x_value, col = "dark green")
 #'   box()
+#'   par(oldPar)
 #' }
-#' rm(x_value)
+#' rm(oldPar)
 kde <- function(y, bw = bw.nrd0(y), N = 512,
                 lower = ry[1] - 3*bw, upper = ry[2] + 3*bw) {
   data_name <- deparse(substitute(y))
   y <- na.omit(y)
+  n <- length(y)
   ry <- range(y)
   dx <- (upper - lower)/N
-  fr <- tabulate(pmax(1, pmin(N, 1+floor((y - lower)/dx))), nbins = N)
   x <- lower - dx/2 + dx*(1:N)
   yo <- numeric(N)
-  for(i in 1:N) {
-    w <- dnorm(x, x[i], bw)
-    yo[i] <- sum(fr*w)/sum(w)
-  }
-  structure(list(x = x, y = yo/(sum(yo)*dx), bw = bw, n = length(y),
+  # if(!missing(lower) || !missing(upper)) {
+  #   lims <- c(lower, upper)
+  #   for(i in 1:n) {
+  #     yo <- yo + dnorm(x, y[i], bw)/diff(pnorm(lims, y[i], bw))
+  #   }
+  # } else {
+    fr <- tabulate(pmax(1, pmin(N, 1+floor((y - lower)/dx))), nbins = N)
+    for(i in 1:N) {
+      w <- dnorm(x, x[i], bw)
+      yo[i] <- sum(fr*w)/sum(w)
+    }
+  # }
+  structure(list(x = x, y = yo/(sum(yo)*dx), bw = bw, n = n,
                  lower = lower, upper = upper,
                  data_name = data_name),
             class = "kde")
@@ -90,11 +99,12 @@ plot.kde <- function(x, ..., col = "steel blue",
 #' @export
 print.kde <- function(x, ...) {
   cat("A Kernel Density Estimate\n\n")
-  labs <- c("Response", "Sample size", "Range", "Bandwidth")
+  labs <- c("Response", "Sample size", "Range", "Bandwidth", "Resolution")
   values <- with(x, c(data_name, n,
                       paste0(signif(lower, 4), " < x < ",
                              signif(upper, 4)),
-                      signif(bw, 4)))
+                      signif(bw, 4),
+                      length(x)))
   cat(paste0(format(labs), ": ", values), sep = "\n")
   generics <- attr(methods(class = "kde"), "info")$generic
   cat("\nMethods exist for generics:",
@@ -112,6 +122,9 @@ as.data.frame.kde <- function(x, row.names, optional, ...,
                            Y = c(0, y, 0), ...),
                 c(data_name, responseName)))
 }
+
+#' @importFrom MASS kde2d bandwidth.nrd
+NULL
 
 #' Two Dimensional Kernel Density Estimate
 #'
@@ -147,26 +160,30 @@ as.data.frame.kde <- function(x, row.names, optional, ...,
 #'                   pDens <- 2*dnorm(x_value)*dnorm(y_value))) +
 #'       aes(x = x_value, y = y_value) +
 #'       geom_raster(aes(fill = density)) +
-#'       geom_contour(aes(z = pDens), colour = "firebrick3") +
+#'       geom_contour(aes(z = pDens), colour = "black") +
 #'       scale_fill_viridis_c(direction = -1) +
 #'       theme_bw() + theme(legend.position = "none")
 #' } else {
 #'   with(unclass(kxy), {
-#'     par(mar = c(3, 3, 1, 1) + 0.1, las = 1, mgp = c(1.5, 0.5, 0),
-#'         cex.axis = 0.7, cex.lab = 0.8, tck = -0.015)
+#'     oldPar <- par(mar = c(3, 3, 1, 1) + 0.1, las = 1, mgp = c(1.5, 0.5, 0),
+#'                  cex.axis = 0.7, cex.lab = 0.8, tck = -0.015)
 #'     plot(kxy)
-#'     contour(x, y, col = "firebrick3",
-#'             z = outer(x, y, function(x, y)
-#'               2*dnorm(x)*dnorm(y)),
+#'     contour(x, y, z = outer(x, y, function(x, y) 2*dnorm(x)*dnorm(y)),
 #'             nlevels = 6, add = TRUE)
 #'     box()
+#'     par(oldPar)
 #'   })
 #' }
 #'
-kde_2d <- function(x, y, N = 256, bw = c(x = bw.nrd0(x), y = bw.nrd0(y)),
+kde_2d <- function(x, y, N = 256,
+                   bw = if (use_mass)
+                     c(bandwidth.nrd(x), bandwidth.nrd(y)) else
+                       c(x = bw.nrd0(x), y = bw.nrd0(y)),
                    lower_x = limits$x$lower, upper_x = limits$x$upper,
                    lower_y = limits$y$lower, upper_y = limits$y$upper,
                    k = 1) {
+  use_mass <- !any(missing(lower_x), missing(upper_x),
+                   missing(lower_y), missing(upper_y))
   data_name_x <- deparse(substitute(x))
   data_name_y <- deparse(substitute(y))
   N <- setNames(rep(N, length.out = 2), c("x", "y"))
@@ -192,7 +209,14 @@ kde_2d <- function(x, y, N = 256, bw = c(x = bw.nrd0(x), y = bw.nrd0(y)),
   #                  dnorm(yo, y[i], bw[["y"]]))
   # }
   # z <- z/sum(z*dx*dy)
-  z <- kde2dCpp(x, y, xo, yo, bw, dx*dy)
+  z <- if(use_mass) {
+    MASS::kde2d(x, y, h = bw, n = N, lims = c(range(xo), range(yo)))
+  } else {
+    kde2dCpp(x, y, xo, yo,
+             c(lower_x, upper_x),
+             c(lower_y, upper_y), bw, dx*dy)
+  }
+
   structure(c(z, list(bw = bw, n = length(x),
                       lower = c(x = lower_x, y = lower_y),
                       upper = c(x = upper_x, y = upper_y),
@@ -204,7 +228,7 @@ kde_2d <- function(x, y, N = 256, bw = c(x = bw.nrd0(x), y = bw.nrd0(y)),
 #' @export
 print.kde_2d <- function(x, ...) {
   cat("A Two-dimensional Kernel Density Estimate\n\n")
-  labs <- c("Responses", "Sample size", "Ranges", "Bandwidths")
+  labs <- c("Responses", "Sample size", "Ranges", "Bandwidths", "Resolution")
   values <- with(x, c(paste(data_name, collapse = ", "),
                       n,
                       paste(paste0(signif(lower["x"], 4), " < x < ",
@@ -212,7 +236,8 @@ print.kde_2d <- function(x, ...) {
                             paste0(signif(lower["y"], 4), " < y < ",
                                    signif(upper["y"], 4)),
                             sep = ", "),
-                      paste(signif(bw, 4), collapse = ", ")))
+                      paste(signif(bw, 4), collapse = ", "),
+                      paste(length(x), length(y), sep = ", ")))
   cat(paste0(format(labs), ": ", values), sep = "\n")
   generics <- attr(methods(class = "kde_2d"), "info")$generic
   cat("\nMethods exist for generics:",
@@ -228,10 +253,7 @@ plot.kde_2d <- function(x, ...,
                         ylab = bquote(italic(.(x$data_name[["y"]]))),
                         col = hcl.colors(25, rev = TRUE)) {
   with(x, {
-    image(x, y, z, xlab = xlab, ylab = ylab, col = col, ...,
-          axes = FALSE)
-    axis(1, mgp = c(1.5, 0.25, 0))
-    axis(2)
+    image(x, y, z, xlab = xlab, ylab = ylab, col = col, ...)
   })
   invisible(x)
 }

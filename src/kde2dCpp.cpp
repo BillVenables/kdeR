@@ -3,8 +3,9 @@ using namespace Rcpp;
 
 
 // [[Rcpp::export]]
-List kde2dCpp(NumericVector x,  NumericVector y,
-              NumericVector xo, NumericVector yo,
+List kde2dCpp(NumericVector x,    NumericVector y,
+              NumericVector xo,   NumericVector yo,
+              NumericVector limx, NumericVector limy,
               NumericVector bwv, double area)
 {
   int nx = xo.size(), ny = yo.size(), n = x.size();
@@ -15,8 +16,8 @@ List kde2dCpp(NumericVector x,  NumericVector y,
 
   for(int k = 0; k < n; k++ )
   {
-    NumericVector dx = dnorm(xo, xd[k], bw[0]),
-                  dy = dnorm(yo, yd[k], bw[1]);
+    NumericVector dx = dnorm(xo, xd[k], bw[0])/diff(pnorm(limx, xd[k], bw[0])).begin()[0],
+                  dy = dnorm(yo, yd[k], bw[1])/diff(pnorm(limy, yd[k], bw[1])).begin()[0];
     for(int j = 0; j < ny; j++)
     {
       z(_, j) = z(_, j) + dx*dy(j);

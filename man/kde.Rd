@@ -59,7 +59,7 @@ gaussian kernel.  Mainly of programming interest.
 }
 \examples{
 set.seed(1234)
-x_value <- rchisq(1000, 2)
+x_value <- rchisq(10000, 2)
 kx <- kde(x_value, lower = 0)
 kx
 if("package:ggplot2" \%in\% search()) {
@@ -72,12 +72,13 @@ if("package:ggplot2" \%in\% search()) {
     xlab(expression(x == italic(x_value))) +
     ylab(expression(kde(italic(x))))
 } else {
-  par(mar = c(3, 3, 1, 1) + 0.1, las = 1, mgp = c(1.5, 0.5, 0),
-      cex.axis = 0.7, cex.lab = 0.8, tck = -0.015)
+  oldPar <- par(mar = c(3, 3, 1, 1) + 0.1, las = 1, mgp = c(1.5, 0.5, 0),
+                cex.axis = 0.7, cex.lab = 0.8, tck = -0.015)
   plot(kx, ylim = c(0,0.5))
-  curve(dchisq(x, 2), add = TRUE, col = 2, n = 500)
+  curve(dchisq(x, 2), add = TRUE, col = 2, n = 1000)
   rug(x_value, col = "dark green")
   box()
+  par(oldPar)
 }
-rm(x_value)
+rm(oldPar)
 }

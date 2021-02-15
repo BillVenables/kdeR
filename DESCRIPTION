@@ -14,7 +14,8 @@ Imports:
     graphics,
     utils,
     grDevices,
-    Rcpp
+    Rcpp,
+    MASS
 Depends: R (>= 4.0.0)
 License: GPL (>= 2)
 Encoding: UTF-8

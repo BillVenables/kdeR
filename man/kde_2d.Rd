@@ -11,7 +11,8 @@ kde_2d(
   x,
   y,
   N = 256,
-  bw = c(x = bw.nrd0(x), y = bw.nrd0(y)),
+  bw = if (use_mass) c(bandwidth.nrd(x), bandwidth.nrd(y)) else c(x = bw.nrd0(x), y =
+    bw.nrd0(y)),
   lower_x = limits$x$lower,
   upper_x = limits$x$upper,
   lower_y = limits$y$lower,
@@ -82,19 +83,18 @@ if("package:ggplot2" \%in\% search()) {
                   pDens <- 2*dnorm(x_value)*dnorm(y_value))) +
       aes(x = x_value, y = y_value) +
       geom_raster(aes(fill = density)) +
-      geom_contour(aes(z = pDens), colour = "firebrick3") +
+      geom_contour(aes(z = pDens), colour = "black") +
       scale_fill_viridis_c(direction = -1) +
       theme_bw() + theme(legend.position = "none")
 } else {
   with(unclass(kxy), {
-    par(mar = c(3, 3, 1, 1) + 0.1, las = 1, mgp = c(1.5, 0.5, 0),
-        cex.axis = 0.7, cex.lab = 0.8, tck = -0.015)
+    oldPar <- par(mar = c(3, 3, 1, 1) + 0.1, las = 1, mgp = c(1.5, 0.5, 0),
+                 cex.axis = 0.7, cex.lab = 0.8, tck = -0.015)
     plot(kxy)
-    contour(x, y, col = "firebrick3",
-            z = outer(x, y, function(x, y)
-              2*dnorm(x)*dnorm(y)),
+    contour(x, y, z = outer(x, y, function(x, y) 2*dnorm(x)*dnorm(y)),
             nlevels = 6, add = TRUE)
     box()
+    par(oldPar)
   })
 }
 

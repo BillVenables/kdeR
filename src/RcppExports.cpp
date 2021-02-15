@@ -6,8 +6,8 @@
 using namespace Rcpp;
 
 // kde2dCpp
-List kde2dCpp(NumericVector x, NumericVector y, NumericVector xo, NumericVector yo, NumericVector bwv, double area);
-RcppExport SEXP _kdeR_kde2dCpp(SEXP xSEXP, SEXP ySEXP, SEXP xoSEXP, SEXP yoSEXP, SEXP bwvSEXP, SEXP areaSEXP) {
+List kde2dCpp(NumericVector x, NumericVector y, NumericVector xo, NumericVector yo, NumericVector limx, NumericVector limy, NumericVector bwv, double area);
+RcppExport SEXP _kdeR_kde2dCpp(SEXP xSEXP, SEXP ySEXP, SEXP xoSEXP, SEXP yoSEXP, SEXP limxSEXP, SEXP limySEXP, SEXP bwvSEXP, SEXP areaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -15,15 +15,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericVector >::type y(ySEXP);
     Rcpp::traits::input_parameter< NumericVector >::type xo(xoSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type yo(yoSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type limx(limxSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type limy(limySEXP);
     Rcpp::traits::input_parameter< NumericVector >::type bwv(bwvSEXP);
     Rcpp::traits::input_parameter< double >::type area(areaSEXP);
-    rcpp_result_gen = Rcpp::wrap(kde2dCpp(x, y, xo, yo, bwv, area));
+    rcpp_result_gen = Rcpp::wrap(kde2dCpp(x, y, xo, yo, limx, limy, bwv, area));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_kdeR_kde2dCpp", (DL_FUNC) &_kdeR_kde2dCpp, 6},
+    {"_kdeR_kde2dCpp", (DL_FUNC) &_kdeR_kde2dCpp, 8},
     {NULL, NULL, 0}
 };
 
