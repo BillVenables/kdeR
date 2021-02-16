@@ -176,9 +176,7 @@ NULL
 #' }
 #'
 kde_2d <- function(x, y, N = 256,
-                   bw = if (use_mass)
-                     c(bandwidth.nrd(x), bandwidth.nrd(y)) else
-                       c(x = bw.nrd0(x), y = bw.nrd0(y)),
+                   bw = c(x = bw.nrd0(x), y = bw.nrd0(y)),
                    lower_x = limits$x$lower, upper_x = limits$x$upper,
                    lower_y = limits$y$lower, upper_y = limits$y$upper,
                    k = 1) {
@@ -210,13 +208,12 @@ kde_2d <- function(x, y, N = 256,
   # }
   # z <- z/sum(z*dx*dy)
   z <- if(use_mass) {
-    MASS::kde2d(x, y, h = bw, n = N, lims = c(range(xo), range(yo)))
+    MASS::kde2d(x, y, h = bw*212/45, n = N, lims = c(range(xo), range(yo)))
   } else {
     kde2dCpp(x, y, xo, yo,
              c(lower_x, upper_x),
              c(lower_y, upper_y), bw, dx*dy)
   }
-
   structure(c(z, list(bw = bw, n = length(x),
                       lower = c(x = lower_x, y = lower_y),
                       upper = c(x = upper_x, y = upper_y),

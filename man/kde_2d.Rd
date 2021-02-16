@@ -11,8 +11,7 @@ kde_2d(
   x,
   y,
   N = 256,
-  bw = if (use_mass) c(bandwidth.nrd(x), bandwidth.nrd(y)) else c(x = bw.nrd0(x), y =
-    bw.nrd0(y)),
+  bw = c(x = bw.nrd0(x), y = bw.nrd0(y)),
   lower_x = limits$x$lower,
   upper_x = limits$x$upper,
   lower_y = limits$y$lower,
